@@ -621,7 +621,7 @@ const BookSubmissionForm: React.FC<BookSubmissionFormProps> = ({ onSuccess }) =>
     return URL.createObjectURL(file);
   };
 
-  const handleFileChange = (type: 'cover' | 'book', file: File | null) => {
+  const handleFileChange = async (type: 'cover' | 'book', file: File | null) => {
     if (type === 'cover') {
       if (file && file.size > 10 * 1024 * 1024) {
         toast.error(`حجم صورة الغلاف كبير جداً: ${formatFileSize(file.size)}`, {
@@ -632,12 +632,26 @@ const BookSubmissionForm: React.FC<BookSubmissionFormProps> = ({ onSuccess }) =>
 
       // إنشاء معاينة لصورة الغلاف
       if (file) {
-        const previewUrl = createImagePreview(file);
+        // 🛡️ قراءة الملف فوراً إلى الذاكرة لتفادي إبطال مرجع الملف من قِبل النظام
+        // (مشكلة شائعة على iOS/Android عند الانتظار قبل الرفع: "فشل قراءة الملف")
+        let stableFile: File = file;
+        try {
+          const buffer = await file.arrayBuffer();
+          stableFile = new File([buffer], file.name, {
+            type: file.type || 'image/jpeg',
+            lastModified: file.lastModified || Date.now(),
+          });
+        } catch (e) {
+          console.warn('⚠️ تعذر تثبيت ملف الغلاف في الذاكرة، سيتم استخدام المرجع الأصلي:', e);
+        }
+
+        const previewUrl = createImagePreview(stableFile);
         setCoverImagePreview(previewUrl);
+        setCoverFile(stableFile);
       } else {
         setCoverImagePreview(null);
+        setCoverFile(null);
       }
-      setCoverFile(file);
     } else if (type === 'book') {
       handleBookFileSelection(file);
     }
