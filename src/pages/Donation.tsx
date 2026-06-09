@@ -16,6 +16,7 @@ const Donation = () => {
   const [currentAmount, setCurrentAmount] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [loading, setLoading] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const targetAmount = 30;
