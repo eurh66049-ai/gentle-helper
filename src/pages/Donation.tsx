@@ -6,7 +6,7 @@ import { Heart, Database, Users, Target, Gift, Loader2, X, Shield, Lock } from "
 import { SEOHead } from "@/components/seo/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+
 
 const PRESET_AMOUNTS = [3, 5, 10, 20];
 const MIN_AMOUNT = 1;
