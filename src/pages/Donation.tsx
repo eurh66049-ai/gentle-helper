@@ -459,56 +459,6 @@ const Donation = () => {
         </div>
       </div>
     </div>
-
-    {/* Custom in-site donation dialog (embeds Polar checkout) */}
-    <Dialog open={!!checkoutUrl} onOpenChange={(open) => !open && setCheckoutUrl(null)}>
-      <DialogContent
-        className="max-w-2xl w-[95vw] p-0 overflow-hidden border-2 border-primary/30 bg-gradient-to-br from-background via-background to-primary/5"
-        style={{ fontFamily: 'Tajawal, sans-serif' }}
-      >
-        {/* Custom header */}
-        <div className="relative bg-gradient-to-r from-primary to-secondary p-5 text-primary-foreground">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-full">
-              <Heart className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold">إتمام التبرع لمنصة كتبي</h2>
-              <p className="text-sm opacity-90">شكراً لدعمك مكتبتنا الرقمية</p>
-            </div>
-            <button
-              onClick={() => setCheckoutUrl(null)}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              aria-label="إغلاق"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="flex items-center gap-4 mt-3 text-xs">
-            <div className="flex items-center gap-1"><Lock className="h-3 w-3" /> دفع آمن ومشفّر</div>
-            <div className="flex items-center gap-1"><Shield className="h-3 w-3" /> بدون حفظ بيانات البطاقة</div>
-          </div>
-        </div>
-
-        {/* Embedded Polar checkout iframe */}
-        <div className="bg-white">
-          {checkoutUrl && (
-            <iframe
-              src={checkoutUrl}
-              title="Polar Checkout"
-              className="w-full"
-              style={{ height: '70vh', minHeight: '500px', border: 'none' }}
-              allow="payment *"
-            />
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-3 bg-muted/50 text-center text-xs text-muted-foreground border-t border-border">
-          الدفع يتم بواسطة Polar — منصة دفع موثوقة وآمنة عالمياً
-        </div>
-      </DialogContent>
-    </Dialog>
     </>
 
   );
