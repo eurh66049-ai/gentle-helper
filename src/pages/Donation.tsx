@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Database, Users, Target, Gift, Loader2 } from "lucide-react";
+import { Heart, Database, Users, Target, Gift, Loader2, X, Shield, Lock } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const PRESET_AMOUNTS = [3, 5, 10, 20];
 const MIN_AMOUNT = 1;
