@@ -85,11 +85,9 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      className="sticky top-0 z-50 mx-2 mt-1 rounded-full border border-border/70 shadow-lg"
+      className="sticky top-0 z-50 mx-2 mt-1 rounded-full border border-border/70"
       style={{
-        background: 'hsl(var(--card) / 0.96)',
-        boxShadow: '0 12px 28px hsl(var(--foreground) / 0.12), inset 0 1px 0 hsl(var(--background) / 0.8)',
-        transform: 'translateZ(0)',
+        background: 'hsl(var(--card))',
         contain: 'layout paint',
       }}
     >

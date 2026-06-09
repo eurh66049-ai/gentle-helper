@@ -109,10 +109,8 @@ const BottomNavigation: React.FC = () => {
     >
       <div className="liquid-nav relative mx-auto w-full max-w-[650px] overflow-hidden rounded-full border border-primary/25 pointer-events-auto"
         style={{
-          background: 'hsl(var(--card) / 0.96)',
+          background: 'hsl(var(--card))',
           padding: '8px 12px',
-          boxShadow: '0 18px 35px hsl(var(--foreground) / 0.2), inset 0 1px 0 hsl(var(--primary-foreground) / 0.12)',
-          transform: 'translateZ(0)',
           contain: 'layout paint',
         }}
       >
@@ -160,13 +158,11 @@ const BottomNavigation: React.FC = () => {
               >
                 <span
                   className={cn(
-                    'flex items-center justify-center gap-1.5 text-[12px] font-medium transition-colors',
-                    active ? 'text-primary-foreground drop-shadow-sm' : 'text-primary',
+                    'flex items-center justify-center gap-1.5 text-[12px] font-medium',
+                    active ? 'text-primary-foreground' : 'text-primary',
                   )}
                 >
-                  <span className={cn(active && '[&_svg]:drop-shadow-[0_0_6px_hsl(var(--primary)/0.7)]')}>
-                    {item.icon}
-                  </span>
+                  <span>{item.icon}</span>
                 </span>
               </button>
             );
