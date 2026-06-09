@@ -1524,13 +1524,15 @@ const BookSubmissionForm: React.FC<BookSubmissionFormProps> = ({ onSuccess }) =>
       // المرحلة 1: التحقق من البيانات
       updateProgress('التحقق من البيانات والاتصال...', 5);
 
-      const { data: testData, error: testError } = await supabase.from('book_submissions').select('count').limit(1);
+      // فحص خفيف للاتصال بقاعدة البيانات (بدون count لتجنّب statement timeout على الجداول الكبيرة)
+      const { error: testError } = await supabase
+        .from('book_submissions')
+        .select('id')
+        .limit(1);
       if (testError) {
         throw new Error(`فشل الاتصال بقاعدة البيانات: ${testError.message}`);
       }
       console.log('✅ الاتصال بقاعدة البيانات يعمل بشكل صحيح');
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // تهيئة روابط الملفات - استخدام الملفات الموجودة في حالة التعديل
       let coverImageUrl = (isEdit || isEditApproved) ? existingFiles.coverImageUrl : null;
