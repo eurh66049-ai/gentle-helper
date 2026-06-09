@@ -48,10 +48,7 @@ const Donation = () => {
       sessionStorage.setItem('donation_initiated', 'true');
 
       // Open Polar embedded checkout overlay
-      const checkout = await PolarEmbedCheckout.create(data.url, { theme: "light" });
-      checkout.addEventListener("close", () => {
-        try { checkout.close(); } catch {}
-      });
+      await PolarEmbedCheckout.create(data.url, { theme: "light" });
     } catch (err: any) {
       console.error('Donation error:', err);
       toast({
