@@ -6,7 +6,7 @@ import { Heart, Database, Users, Target, Gift, Loader2, X, Shield, Lock } from "
 import { SEOHead } from "@/components/seo/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+
 
 const PRESET_AMOUNTS = [3, 5, 10, 20];
 const MIN_AMOUNT = 1;
@@ -255,29 +255,62 @@ const Donation = () => {
                     />
                   </div>
 
-                  {/* Polar Donate Button */}
-                  <Button
-                    onClick={handleDonate}
-                    disabled={loading}
-                    className="w-full font-bold text-lg py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                  >
-                    {loading ? (
-                      <Loader2 className="h-5 w-5 ml-2 animate-spin" />
-                    ) : (
-                      <Heart className="h-5 w-5 ml-2" />
-                    )}
-                    {loading ? "جاري التحضير..." : `تبرع بـ $${selectedAmount} الآن`}
-                  </Button>
-
-                  <p className="text-xs text-center text-muted-foreground"
-                     style={{
-                       fontFamily: 'Tajawal, sans-serif',
-                       fontWeight: '400',
-                       fontSize: '13px'
-                     }}>
-                    سيتم فتح نافذة الدفع الآمنة داخل الموقع عبر Polar
-                  </p>
+                  {!checkoutUrl && (
+                    <>
+                      <Button
+                        onClick={handleDonate}
+                        disabled={loading}
+                        className="w-full font-bold text-lg py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                      >
+                        {loading ? (
+                          <Loader2 className="h-5 w-5 ml-2 animate-spin" />
+                        ) : (
+                          <Heart className="h-5 w-5 ml-2" />
+                        )}
+                        {loading ? "جاري التحضير..." : `تبرع بـ $${selectedAmount} الآن`}
+                      </Button>
+                      <p className="text-xs text-center text-muted-foreground"
+                         style={{ fontFamily: 'Tajawal, sans-serif', fontWeight: '400', fontSize: '13px' }}>
+                        سيظهر نموذج الدفع الآمن أسفل الزر داخل الموقع
+                      </p>
+                    </>
+                  )}
                 </div>
+
+                {/* Inline embedded Polar checkout (no popup) */}
+                {checkoutUrl && (
+                  <div className="mt-6 rounded-xl overflow-hidden border-2 border-primary/30 bg-white shadow-lg">
+                    <div className="bg-gradient-to-r from-primary to-secondary p-4 text-primary-foreground flex items-center gap-3">
+                      <div className="p-2 bg-white/20 rounded-full">
+                        <Heart className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-base">إتمام التبرع</h3>
+                        <div className="flex items-center gap-3 text-xs opacity-90 mt-1">
+                          <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> دفع مشفّر</span>
+                          <span className="flex items-center gap-1"><Shield className="h-3 w-3" /> آمن</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setCheckoutUrl(null)}
+                        className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                        aria-label="إلغاء"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                    <iframe
+                      src={checkoutUrl}
+                      title="Polar Checkout"
+                      className="w-full bg-white"
+                      style={{ height: '720px', border: 'none', display: 'block' }}
+                      allow="payment *"
+                    />
+                    <div className="p-3 bg-muted/50 text-center text-xs text-muted-foreground border-t border-border">
+                      الدفع بواسطة Polar — منصة دفع موثوقة عالمياً
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -426,56 +459,6 @@ const Donation = () => {
         </div>
       </div>
     </div>
-
-    {/* Custom in-site donation dialog (embeds Polar checkout) */}
-    <Dialog open={!!checkoutUrl} onOpenChange={(open) => !open && setCheckoutUrl(null)}>
-      <DialogContent
-        className="max-w-2xl w-[95vw] p-0 overflow-hidden border-2 border-primary/30 bg-gradient-to-br from-background via-background to-primary/5"
-        style={{ fontFamily: 'Tajawal, sans-serif' }}
-      >
-        {/* Custom header */}
-        <div className="relative bg-gradient-to-r from-primary to-secondary p-5 text-primary-foreground">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-full">
-              <Heart className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold">إتمام التبرع لمنصة كتبي</h2>
-              <p className="text-sm opacity-90">شكراً لدعمك مكتبتنا الرقمية</p>
-            </div>
-            <button
-              onClick={() => setCheckoutUrl(null)}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              aria-label="إغلاق"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="flex items-center gap-4 mt-3 text-xs">
-            <div className="flex items-center gap-1"><Lock className="h-3 w-3" /> دفع آمن ومشفّر</div>
-            <div className="flex items-center gap-1"><Shield className="h-3 w-3" /> بدون حفظ بيانات البطاقة</div>
-          </div>
-        </div>
-
-        {/* Embedded Polar checkout iframe */}
-        <div className="bg-white">
-          {checkoutUrl && (
-            <iframe
-              src={checkoutUrl}
-              title="Polar Checkout"
-              className="w-full"
-              style={{ height: '70vh', minHeight: '500px', border: 'none' }}
-              allow="payment *"
-            />
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-3 bg-muted/50 text-center text-xs text-muted-foreground border-t border-border">
-          الدفع يتم بواسطة Polar — منصة دفع موثوقة وآمنة عالمياً
-        </div>
-      </DialogContent>
-    </Dialog>
     </>
 
   );
