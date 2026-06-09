@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Database, Users, Target, Gift, Loader2 } from "lucide-react";
+import { Heart, Database, Users, Target, Gift, Loader2, X, Shield, Lock } from "lucide-react";
 import { SEOHead } from "@/components/seo/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const PRESET_AMOUNTS = [3, 5, 10, 20];
 const MIN_AMOUNT = 1;
@@ -16,6 +16,7 @@ const Donation = () => {
   const [currentAmount, setCurrentAmount] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [loading, setLoading] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const targetAmount = 30;
@@ -47,8 +48,11 @@ const Donation = () => {
 
       sessionStorage.setItem('donation_initiated', 'true');
 
-      // Open Polar embedded checkout overlay
-      await PolarEmbedCheckout.create(data.url, { theme: "light" });
+      // Open inside our custom in-site dialog (embedded iframe)
+      const url = new URL(data.url);
+      url.searchParams.set('embed', 'true');
+      url.searchParams.set('theme', 'light');
+      setCheckoutUrl(url.toString());
     } catch (err: any) {
       console.error('Donation error:', err);
       toast({
@@ -422,7 +426,58 @@ const Donation = () => {
         </div>
       </div>
     </div>
+
+    {/* Custom in-site donation dialog (embeds Polar checkout) */}
+    <Dialog open={!!checkoutUrl} onOpenChange={(open) => !open && setCheckoutUrl(null)}>
+      <DialogContent
+        className="max-w-2xl w-[95vw] p-0 overflow-hidden border-2 border-primary/30 bg-gradient-to-br from-background via-background to-primary/5"
+        style={{ fontFamily: 'Tajawal, sans-serif' }}
+      >
+        {/* Custom header */}
+        <div className="relative bg-gradient-to-r from-primary to-secondary p-5 text-primary-foreground">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-full">
+              <Heart className="h-6 w-6" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold">إتمام التبرع لمنصة كتبي</h2>
+              <p className="text-sm opacity-90">شكراً لدعمك مكتبتنا الرقمية</p>
+            </div>
+            <button
+              onClick={() => setCheckoutUrl(null)}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              aria-label="إغلاق"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="flex items-center gap-4 mt-3 text-xs">
+            <div className="flex items-center gap-1"><Lock className="h-3 w-3" /> دفع آمن ومشفّر</div>
+            <div className="flex items-center gap-1"><Shield className="h-3 w-3" /> بدون حفظ بيانات البطاقة</div>
+          </div>
+        </div>
+
+        {/* Embedded Polar checkout iframe */}
+        <div className="bg-white">
+          {checkoutUrl && (
+            <iframe
+              src={checkoutUrl}
+              title="Polar Checkout"
+              className="w-full"
+              style={{ height: '70vh', minHeight: '500px', border: 'none' }}
+              allow="payment *"
+            />
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-3 bg-muted/50 text-center text-xs text-muted-foreground border-t border-border">
+          الدفع يتم بواسطة Polar — منصة دفع موثوقة وآمنة عالمياً
+        </div>
+      </DialogContent>
+    </Dialog>
     </>
+
   );
 };
 
