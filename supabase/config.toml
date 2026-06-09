@@ -1,0 +1,4 @@
+project_id = "kydmyxsgyxeubhmqzrgo"
+
+[functions.polar-create-checkout]
+verify_jwt = false
