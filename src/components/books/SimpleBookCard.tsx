@@ -57,7 +57,7 @@ export const SimpleBookCard = memo(({
       href={bookUrl}
       className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 rounded-2xl"
     >
-      <div className="relative h-full flex flex-col rounded-2xl bg-card text-card-foreground border border-border/60 p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[transform,box-shadow,border-color] duration-200 ease-out will-change-transform group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.18)] group-hover:border-primary/30">
+      <div className="relative h-full flex flex-col rounded-2xl bg-card text-card-foreground border border-border/60 p-2.5">
         {/* Cover */}
         <div className="relative w-full mx-auto max-w-[140px]">
           <AspectRatio ratio={3 / 4.5}>
@@ -66,22 +66,20 @@ export const SimpleBookCard = memo(({
                 src={validCoverImage}
                 fallbackSrc="/placeholder.svg"
                 alt={displayTitle}
-                className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+                className="w-full h-full object-cover"
                 priority={index < 4}
               />
-              {/* Subtle gloss */}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
           </AspectRatio>
 
           {showNewBadge && (
-            <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[10px] leading-none px-2 py-1 rounded-full font-semibold shadow-sm">
+            <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[10px] leading-none px-2 py-1 rounded-full font-semibold">
               جديد
             </span>
           )}
 
           {display_only && (
-            <span className="absolute bottom-1.5 right-1.5 bg-background/90 backdrop-blur-sm rounded-full p-1 shadow-sm border border-border/50">
+            <span className="absolute bottom-1.5 right-1.5 bg-background/90 rounded-full p-1 border border-border/50">
               <DisplayOnlyIcon className="h-5 w-5" />
             </span>
           )}
