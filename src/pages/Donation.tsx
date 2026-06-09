@@ -48,8 +48,11 @@ const Donation = () => {
 
       sessionStorage.setItem('donation_initiated', 'true');
 
-      // Open Polar embedded checkout overlay
-      await PolarEmbedCheckout.create(data.url, { theme: "light" });
+      // Open inside our custom in-site dialog (embedded iframe)
+      const url = new URL(data.url);
+      url.searchParams.set('embed', 'true');
+      url.searchParams.set('theme', 'light');
+      setCheckoutUrl(url.toString());
     } catch (err: any) {
       console.error('Donation error:', err);
       toast({
