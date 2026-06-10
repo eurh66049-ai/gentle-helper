@@ -123,6 +123,7 @@ const Navbar: React.FC = () => {
                 <>
                   <div className="my-3 h-px bg-border" />
                   <MenuButton label="انشر كتابك" icon={<UploadBookIcon />} onClick={() => handleNavigation('/upload-book')} />
+                  <MenuButton label="اكتب كتابك" icon={<PenSquare className="h-5 w-5" />} onClick={() => handleNavigation('/write')} />
                   <MenuButton label="كتبي" icon={<MyBooksIcon />} onClick={() => handleNavigation('/my-books')} />
                   <MenuButton label="حسابي" icon={<ProfileIcon />} onClick={() => handleNavigation('/profile')} />
                   {!adminCheckLoading && isAdmin && (
