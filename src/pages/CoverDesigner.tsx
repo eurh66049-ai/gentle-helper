@@ -442,9 +442,16 @@ const CoverDesigner: React.FC = () => {
       <div>
         <Label className="text-foreground font-semibold mb-2 block">صورة الغلاف</Label>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => fileInputRef.current?.click()}>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" className="flex-1 min-w-[120px]" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-4 w-4 ml-2" /> رفع صورة
+          </Button>
+          <Button
+            variant="default"
+            className="flex-1 min-w-[140px] bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
+            onClick={() => setAiOpen(true)}
+          >
+            <Wand2 className="h-4 w-4 ml-2" /> تخيّل بالذكاء
           </Button>
           {state.backgroundImage && (
             <Button variant="destructive" size="icon" onClick={() => update('backgroundImage', null)}>
@@ -452,6 +459,9 @@ const CoverDesigner: React.FC = () => {
             </Button>
           )}
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          اكتب وصفاً للغلاف الذي تتخيله وسيقوم الذكاء الاصطناعي بإنشائه لك ✨
+        </p>
       </div>
     </div>
   );
