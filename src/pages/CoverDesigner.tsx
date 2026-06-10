@@ -269,6 +269,42 @@ const CoverDesigner: React.FC = () => {
     reader.readAsDataURL(file);
   }, [update]);
 
+  const handleGenerateAICover = useCallback(async () => {
+    if (!aiPrompt.trim() || aiPrompt.trim().length < 3) {
+      toast.error('اكتب وصفاً للغلاف أولاً');
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-cover-image', {
+        body: {
+          description: aiPrompt.trim(),
+          title: state.title,
+          bookType: state.bookType,
+        },
+      });
+      if (error) {
+        toast.error(error.message || 'فشل توليد الغلاف');
+        return;
+      }
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      if (data?.imageUrl) {
+        update('backgroundImage', data.imageUrl);
+        toast.success('تم إنشاء الغلاف بالذكاء الاصطناعي!');
+        setAiOpen(false);
+        setAiPrompt('');
+      } else {
+        toast.error('لم يتم إنشاء صورة');
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? 'حدث خطأ');
+    } finally {
+      setAiLoading(false);
+    }
+
   const handleDownload = useCallback(async () => {
     if (!coverRef.current) return;
     try {
