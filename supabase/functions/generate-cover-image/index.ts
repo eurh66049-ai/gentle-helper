@@ -61,7 +61,7 @@ STRICT rules for Arabic text rendering:
 
 Additional: polished artistic design, professional lighting, balanced composition, colors harmonious with the book's theme.`;
 
-    const resp = await fetch(`${MISTRAL_API}/chat/completions`, {
+    const resp = await fetch(`${MISTRAL_API}/conversations`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -69,8 +69,9 @@ Additional: polished artistic design, professional lighting, balanced compositio
       },
       body: JSON.stringify({
         model: "mistral-medium-latest",
-        messages: [{ role: "user", content: prompt }],
+        inputs: prompt,
         tools: [{ type: "image_generation" }],
+        store: false,
       }),
     });
 
@@ -96,29 +97,39 @@ Additional: polished artistic design, professional lighting, balanced compositio
     }
 
     const data = await resp.json();
-    console.log("Mistral response:", JSON.stringify(data).slice(0, 1500));
+    console.log("Mistral response:", JSON.stringify(data).slice(0, 2000));
 
-    // Extract image: Mistral returns content as array of chunks; image chunks have type "tool_file" with file_id
-    const content = data?.choices?.[0]?.message?.content;
+    // Conversations API returns { outputs: [...] } with message.output entries containing content chunks
     let b64: string | null = null;
+    const outputs = Array.isArray(data?.outputs) ? data.outputs : [];
 
-    const chunks = Array.isArray(content) ? content : [];
-    for (const chunk of chunks) {
-      if (chunk?.type === "tool_file" && chunk?.file_id) {
-        b64 = await fetchFileAsBase64(chunk.file_id, apiKey);
-        if (b64) break;
-      }
-      if (chunk?.type === "image_url" && typeof chunk?.image_url === "string") {
-        // Fallback: fetch URL
-        const r = await fetch(chunk.image_url);
-        if (r.ok) {
-          const buf = new Uint8Array(await r.arrayBuffer());
-          let binary = "";
-          for (let i = 0; i < buf.length; i += 0x8000) binary += String.fromCharCode(...buf.subarray(i, i + 0x8000));
-          b64 = btoa(binary);
-          break;
+    const collectChunks = (entry: any): any[] => {
+      const c = entry?.content;
+      if (Array.isArray(c)) return c;
+      if (c && typeof c === "object") return [c];
+      return [];
+    };
+
+    for (const out of outputs) {
+      const chunks = collectChunks(out);
+      for (const chunk of chunks) {
+        if (chunk?.type === "tool_file" && chunk?.file_id) {
+          b64 = await fetchFileAsBase64(chunk.file_id, apiKey);
+          if (b64) break;
+        }
+        if (chunk?.type === "image_url" && (chunk?.image_url?.url || typeof chunk?.image_url === "string")) {
+          const url = typeof chunk.image_url === "string" ? chunk.image_url : chunk.image_url.url;
+          const r = await fetch(url);
+          if (r.ok) {
+            const buf = new Uint8Array(await r.arrayBuffer());
+            let binary = "";
+            for (let i = 0; i < buf.length; i += 0x8000) binary += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+            b64 = btoa(binary);
+            break;
+          }
         }
       }
+      if (b64) break;
     }
 
     if (!b64) {
