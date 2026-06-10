@@ -5,18 +5,17 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Loader2,
   ArrowRight,
   Save,
   CheckCircle2,
   XCircle,
-  Image as ImageIcon,
   Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ChapterContent } from '@/lib/chapterContent';
+import { ChapterBlocksEditor } from '@/components/writing/ChapterBlocksEditor';
 
 interface Chapter {
   id: string;
@@ -28,9 +27,11 @@ interface Chapter {
   word_count: number;
 }
 
-const countWords = (s: string) => (s.trim() ? s.trim().split(/\s+/).length : 0);
-const MAX_IMAGE_MB = 5;
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const countWords = (s: string) => {
+  // Strip image markers before counting.
+  const text = s.replace(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g, ' ');
+  return text.trim() ? text.trim().split(/\s+/).length : 0;
+};
 
 const ChapterEditorPage: React.FC = () => {
   const { storyId, chapterId } = useParams<{ storyId: string; chapterId: string }>();
@@ -39,14 +40,10 @@ const ChapterEditorPage: React.FC = () => {
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadingImg, setUploadingImg] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const dirtyRef = useRef(false);
   const timerRef = useRef<number | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const cursorRef = useRef<number>(0);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!chapterId || !user) return;
@@ -134,73 +131,7 @@ const ChapterEditorPage: React.FC = () => {
     toast.success(newState ? 'تم نشر الفصل' : 'تم إلغاء النشر');
   };
 
-  const rememberCursor = () => {
-    const el = textareaRef.current;
-    if (el) cursorRef.current = el.selectionStart ?? el.value.length;
-  };
-
-  const insertAtCursor = (snippet: string) => {
-    if (!chapter) return;
-    const pos = Math.min(cursorRef.current, chapter.content.length);
-    const before = chapter.content.slice(0, pos);
-    const after = chapter.content.slice(pos);
-    // Ensure the marker sits on its own line.
-    const prefix = before.length === 0 || before.endsWith('\n') ? '' : '\n';
-    const suffix = after.startsWith('\n') || after.length === 0 ? '' : '\n';
-    const insertion = `${prefix}${snippet}${suffix}`;
-    const newContent = before + insertion + after;
-    update({ content: newContent });
-    const newPos = pos + insertion.length;
-    cursorRef.current = newPos;
-    requestAnimationFrame(() => {
-      const el = textareaRef.current;
-      if (el) {
-        el.focus();
-        try {
-          el.setSelectionRange(newPos, newPos);
-        } catch {}
-      }
-    });
-  };
-
-  const onPickImage = () => {
-    rememberCursor();
-    fileInputRef.current?.click();
-  };
-
-  const handleImageUpload = async (file: File) => {
-    if (!user || !chapter) return;
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error('نوع الصورة غير مدعوم (JPG/PNG/WEBP/GIF)');
-      return;
-    }
-    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
-      toast.error(`الحد الأقصى لحجم الصورة ${MAX_IMAGE_MB} ميجابايت`);
-      return;
-    }
-    setUploadingImg(true);
-    try {
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
-      const path = `${user.id}/chapters/${chapter.id}/${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('stories')
-        .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from('stories').getPublicUrl(path);
-      const url = pub.publicUrl;
-      insertAtCursor(`![](${url})`);
-      toast.success('تمت إضافة الصورة');
-    } catch (e: any) {
-      console.error(e);
-      toast.error('فشل رفع الصورة');
-    } finally {
-      setUploadingImg(false);
-    }
-  };
-
-  if (loading || !chapter) {
+  if (loading || !chapter || !user) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
@@ -247,23 +178,14 @@ const ChapterEditorPage: React.FC = () => {
           placeholder="عنوان الفصل"
         />
 
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 mb-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onPickImage}
-            disabled={uploadingImg}
-            className="gap-1"
-          >
-            {uploadingImg ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <ImageIcon className="h-4 w-4" />
-            )}
-            <span>إدراج صورة</span>
-          </Button>
+        <ChapterBlocksEditor
+          chapterId={chapter.id}
+          userId={user.id}
+          initialContent={chapter.content}
+          onChange={(content) => update({ content })}
+        />
+
+        <div className="mt-4">
           <Button
             type="button"
             variant="outline"
@@ -272,50 +194,19 @@ const ChapterEditorPage: React.FC = () => {
             className="gap-1"
           >
             <Eye className="h-4 w-4" />
-            <span>{showPreview ? 'إخفاء المعاينة' : 'معاينة'}</span>
+            <span>{showPreview ? 'إخفاء المعاينة' : 'معاينة كما يرى القارئ'}</span>
           </Button>
-          <span className="text-[11px] text-muted-foreground">
-            اضغط داخل النص حيث تريد ثم اضغط «إدراج صورة»
-          </span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleImageUpload(f);
-              if (e.target) e.target.value = '';
-            }}
-          />
         </div>
 
-        <Textarea
-          ref={textareaRef}
-          value={chapter.content}
-          onChange={(e) => {
-            cursorRef.current = e.target.selectionStart ?? 0;
-            update({ content: e.target.value });
-          }}
-          onClick={rememberCursor}
-          onKeyUp={rememberCursor}
-          onSelect={rememberCursor}
-          onBlur={rememberCursor}
-          placeholder="ابدأ كتابة فصلك هنا... استخدم «إدراج صورة» لإضافة صور بين الفقرات."
-          className="min-h-[60vh] text-base leading-loose font-[Tajawal,sans-serif]"
-          dir="rtl"
-        />
-
         {showPreview && (
-          <div className="mt-4 p-4 border rounded-lg bg-muted/30">
-            <div className="text-xs text-muted-foreground mb-2">معاينة كما يظهر للقارئ</div>
+          <div className="mt-3 p-4 border rounded-lg bg-muted/30">
             <div dir="rtl">
               <ChapterContent content={chapter.content} />
             </div>
           </div>
         )}
 
-        <div className="flex gap-2 mt-3 sticky bottom-2 bg-background/95 backdrop-blur p-2 rounded-lg border">
+        <div className="flex gap-2 mt-4 sticky bottom-2 bg-background/95 backdrop-blur p-2 rounded-lg border">
           <Button
             onClick={() => save(chapter)}
             disabled={saving}
