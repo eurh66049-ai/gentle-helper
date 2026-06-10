@@ -8,8 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Download, Upload, RotateCcw, Eye, Layers, Type, Palette, Layout, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Download, Upload, RotateCcw, Eye, Layers, Type, Palette, Layout, Sparkles, Image as ImageIcon, Wand2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
 
 // ---- Types ----
 interface CoverState {
