@@ -13,6 +13,7 @@ export default function SearchResults() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const [filteredBooks, setFilteredBooks] = useState<any[]>([]);
+  const [storyResults, setStoryResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -23,6 +24,7 @@ export default function SearchResults() {
   const searchBooks = async (pageNum = 0, isLoadMore = false) => {
     if (!query.trim()) {
       setFilteredBooks([]);
+      setStoryResults([]);
       setLoading(false);
       return;
     }
@@ -30,8 +32,18 @@ export default function SearchResults() {
     if (!isLoadMore) {
       setLoading(true);
       setFilteredBooks([]);
+      setStoryResults([]);
       setPage(0);
       setHasMore(true);
+
+      // Search user stories (only on first page)
+      supabase
+        .from('user_stories')
+        .select('id,title,description,cover_url,category,views_count')
+        .eq('is_public', true)
+        .or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
+        .limit(12)
+        .then(({ data }) => setStoryResults(data || []));
     } else {
       setLoadingMore(true);
     }
