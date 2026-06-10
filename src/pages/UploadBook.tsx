@@ -122,14 +122,18 @@ const UploadBook: React.FC = () => {
           <div className="max-w-3xl mx-auto mb-3">
             <div
               onClick={() => navigate('/cover-designer')}
-              className="flex items-center gap-3 p-3 rounded-xl bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/15 transition-colors"
+              className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-l from-primary/15 to-purple-500/10 border border-primary/30 cursor-pointer hover:from-primary/20 hover:to-purple-500/15 transition-colors"
             >
               <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                <span className="text-lg">🎨</span>
+                <span className="text-lg">✨</span>
               </div>
               <div className="flex-1 text-right">
-                <p className="text-sm font-black text-foreground">صمّم غلاف كتابك بنفسك!</p>
-                <p className="text-xs text-muted-foreground">استخدم مصمم الأغلفة المتقدم لإنشاء غلاف احترافي لكتابك قبل رفعه</p>
+                <p className="text-sm font-black text-foreground">
+                  جديد: تخيّل غلاف كتابك بالذكاء الاصطناعي! 🎨
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  صمّم غلافاً احترافياً بنفسك، أو اكتب وصفاً للغلاف الذي تتخيّله وسيُنشئه لك الذكاء الاصطناعي مع عنوان كتابك وتصنيفه تلقائياً.
+                </p>
               </div>
               <span className="text-primary text-lg">←</span>
             </div>
