@@ -156,6 +156,29 @@ export default function SearchResults() {
           )}
         </div>
 
+        {storyResults.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-foreground mb-3">قصص المستخدمين ({storyResults.length})</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {storyResults.map((s) => (
+                <Link key={s.id} to={`/story/${s.id}`} className="group block bg-card border border-border rounded-lg overflow-hidden hover:border-primary transition-colors">
+                  <div className="aspect-[3/4] bg-muted overflow-hidden">
+                    {s.cover_url ? (
+                      <img src={s.cover_url} alt={s.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center"><BookOpen className="h-8 w-8 text-muted-foreground" /></div>
+                    )}
+                  </div>
+                  <div className="p-2">
+                    <h3 className="font-bold text-sm line-clamp-2">{s.title}</h3>
+                    {s.category && <p className="text-[10px] text-primary mt-1">{s.category}</p>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {filteredBooks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBooks.map((book) => (
