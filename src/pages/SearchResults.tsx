@@ -13,6 +13,7 @@ export default function SearchResults() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const [filteredBooks, setFilteredBooks] = useState<any[]>([]);
+  const [storyResults, setStoryResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -23,6 +24,7 @@ export default function SearchResults() {
   const searchBooks = async (pageNum = 0, isLoadMore = false) => {
     if (!query.trim()) {
       setFilteredBooks([]);
+      setStoryResults([]);
       setLoading(false);
       return;
     }
@@ -30,8 +32,18 @@ export default function SearchResults() {
     if (!isLoadMore) {
       setLoading(true);
       setFilteredBooks([]);
+      setStoryResults([]);
       setPage(0);
       setHasMore(true);
+
+      // Search user stories (only on first page)
+      supabase
+        .from('user_stories')
+        .select('id,title,description,cover_url,category,views_count')
+        .eq('is_public', true)
+        .or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
+        .limit(12)
+        .then(({ data }) => setStoryResults(data || []));
     } else {
       setLoadingMore(true);
     }
@@ -144,6 +156,29 @@ export default function SearchResults() {
           )}
         </div>
 
+        {storyResults.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-foreground mb-3">قصص المستخدمين ({storyResults.length})</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {storyResults.map((s) => (
+                <Link key={s.id} to={`/story/${s.id}`} className="group block bg-card border border-border rounded-lg overflow-hidden hover:border-primary transition-colors">
+                  <div className="aspect-[3/4] bg-muted overflow-hidden">
+                    {s.cover_url ? (
+                      <img src={s.cover_url} alt={s.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center"><BookOpen className="h-8 w-8 text-muted-foreground" /></div>
+                    )}
+                  </div>
+                  <div className="p-2">
+                    <h3 className="font-bold text-sm line-clamp-2">{s.title}</h3>
+                    {s.category && <p className="text-[10px] text-primary mt-1">{s.category}</p>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {filteredBooks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBooks.map((book) => (
@@ -203,7 +238,7 @@ export default function SearchResults() {
               </div>
             )}
           </div>
-        ) : query ? (
+        ) : query && storyResults.length === 0 ? (
           <div className="text-center py-16">
             <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">

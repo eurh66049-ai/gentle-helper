@@ -63,6 +63,7 @@ const StoryEditorPage = lazy(() => import('./pages/StoryEditorPage'));
 const ChapterEditorPage = lazy(() => import('./pages/ChapterEditorPage'));
 const StoryPublicPage = lazy(() => import('./pages/StoryReaderPages').then(m => ({ default: m.StoryPublicPage })));
 const ChapterReaderPage = lazy(() => import('./pages/StoryReaderPages').then(m => ({ default: m.ChapterReaderPage })));
+const StoriesBrowse = lazy(() => import('./pages/StoriesBrowse'));
 import DailyLoginModal from './components/gamification/DailyLoginModal';
 import MysteryDropHunter from './components/gamification/MysteryDropHunter';
 
@@ -166,6 +167,7 @@ function AppContent() {
             <Route path="/write/:storyId/chapter/:chapterId" element={<ChapterEditorPage />} />
             <Route path="/story/:storyId" element={<StoryPublicPage />} />
             <Route path="/story/:storyId/chapter/:chapterNumber" element={<ChapterReaderPage />} />
+            <Route path="/stories" element={<StoriesBrowse />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
