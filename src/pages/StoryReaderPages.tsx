@@ -144,6 +144,9 @@ export const ChapterReaderPage: React.FC = () => {
           {chapter.content}
         </article>
 
+        <ChapterInteractions chapterId={chapter.id} />
+
+
         <div className="flex gap-2 mt-6">
           <Button variant="outline" disabled={!neighbors.prev} onClick={() => neighbors.prev && navigate(`/story/${storyId}/chapter/${neighbors.prev}`)} className="flex-1">
             <ArrowRight className="h-4 w-4 ml-1" /> السابق
