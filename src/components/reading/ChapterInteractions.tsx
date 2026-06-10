@@ -225,7 +225,11 @@ export const ChapterInteractions: React.FC<Props> = ({ chapterId }) => {
             <span className="hidden sm:inline mr-1">التعليقات</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-[85vh] flex flex-col p-0" dir="rtl">
+        <SheetContent
+          side="bottom"
+          className="flex flex-col p-0 h-[85vh] max-h-[85vh] z-[100] pb-[var(--bottom-nav-safe-space,0px)]"
+          dir="rtl"
+        >
           <SheetHeader className="px-4 py-3 border-b">
             <SheetTitle>التعليقات ({commentCount})</SheetTitle>
           </SheetHeader>
