@@ -8,8 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Download, Upload, RotateCcw, Eye, Layers, Type, Palette, Layout, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Download, Upload, RotateCcw, Eye, Layers, Type, Palette, Layout, Sparkles, Image as ImageIcon, Wand2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
 
 // ---- Types ----
 interface CoverState {
@@ -220,6 +223,9 @@ const CoverDesigner: React.FC = () => {
   const [state, setState] = useState<CoverState>(INITIAL_STATE);
   const [activeTab, setActiveTab] = useState('content');
   const [showMiniPreview, setShowMiniPreview] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
   const previewSectionRef = useRef<HTMLDivElement>(null);
@@ -262,6 +268,45 @@ const CoverDesigner: React.FC = () => {
     };
     reader.readAsDataURL(file);
   }, [update]);
+
+  const handleGenerateAICover = useCallback(async () => {
+    if (!aiPrompt.trim() || aiPrompt.trim().length < 3) {
+      toast.error('اكتب وصفاً للغلاف أولاً');
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-cover-image', {
+        body: {
+          description: aiPrompt.trim(),
+          title: state.title,
+          bookType: state.bookType,
+        },
+      });
+      if (error) {
+        toast.error(error.message || 'فشل توليد الغلاف');
+        return;
+      }
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      if (data?.imageUrl) {
+        update('backgroundImage', data.imageUrl);
+        toast.success('تم إنشاء الغلاف بالذكاء الاصطناعي!');
+        setAiOpen(false);
+        setAiPrompt('');
+      } else {
+        toast.error('لم يتم إنشاء صورة');
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? 'حدث خطأ');
+    } finally {
+      setAiLoading(false);
+    }
+  }, [aiPrompt, state.title, state.bookType, update]);
+
+
 
   const handleDownload = useCallback(async () => {
     if (!coverRef.current) return;
@@ -397,9 +442,16 @@ const CoverDesigner: React.FC = () => {
       <div>
         <Label className="text-foreground font-semibold mb-2 block">صورة الغلاف</Label>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => fileInputRef.current?.click()}>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" className="flex-1 min-w-[120px]" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-4 w-4 ml-2" /> رفع صورة
+          </Button>
+          <Button
+            variant="default"
+            className="flex-1 min-w-[140px] bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
+            onClick={() => setAiOpen(true)}
+          >
+            <Wand2 className="h-4 w-4 ml-2" /> تخيّل بالذكاء
           </Button>
           {state.backgroundImage && (
             <Button variant="destructive" size="icon" onClick={() => update('backgroundImage', null)}>
@@ -407,6 +459,9 @@ const CoverDesigner: React.FC = () => {
             </Button>
           )}
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          اكتب وصفاً للغلاف الذي تتخيله وسيقوم الذكاء الاصطناعي بإنشائه لك ✨
+        </p>
       </div>
     </div>
   );
@@ -888,6 +943,42 @@ const CoverDesigner: React.FC = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={aiOpen} onOpenChange={(o) => { if (!aiLoading) setAiOpen(o); }}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-primary" />
+              تخيّل غلاف كتابك بالذكاء الاصطناعي
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              اكتب وصفاً تفصيلياً للغلاف الذي تريده وسيقوم الذكاء الاصطناعي بإنشائه. مثال: "مدينة قديمة تحت ضوء القمر بألوان دافئة وأسلوب فني سينمائي".
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="صف الغلاف الذي تتخيله بالتفصيل…"
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            rows={5}
+            disabled={aiLoading}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            نصيحة: اذكر الأجواء، الألوان، العناصر الرئيسية، والأسلوب الفني. لن تُضاف نصوص على الصورة (يمكنك إضافة العنوان لاحقاً).
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setAiOpen(false)} disabled={aiLoading}>
+              إلغاء
+            </Button>
+            <Button onClick={handleGenerateAICover} disabled={aiLoading || aiPrompt.trim().length < 3}>
+              {aiLoading ? (
+                <><Loader2 className="h-4 w-4 ml-2 animate-spin" /> جارٍ الإنشاء…</>
+              ) : (
+                <><Sparkles className="h-4 w-4 ml-2" /> أنشئ الغلاف</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
