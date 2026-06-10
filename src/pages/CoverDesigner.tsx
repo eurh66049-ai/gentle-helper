@@ -223,6 +223,9 @@ const CoverDesigner: React.FC = () => {
   const [state, setState] = useState<CoverState>(INITIAL_STATE);
   const [activeTab, setActiveTab] = useState('content');
   const [showMiniPreview, setShowMiniPreview] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
   const previewSectionRef = useRef<HTMLDivElement>(null);
