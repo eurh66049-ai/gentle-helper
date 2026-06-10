@@ -16,10 +16,15 @@ const BOOK_TYPES = ['رواية', 'قصة', 'دراسة', 'سيرة ذاتية',
 
 const CoverDesigner: React.FC = () => {
   const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
   const [bookType, setBookType] = useState('رواية');
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  // إزالة التشكيل من النص العربي
+  const stripTashkeel = (text: string) =>
+    text.replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/\s+/g, ' ').trim();
 
   const handleGenerate = useCallback(async () => {
     if (!title.trim()) {
@@ -33,7 +38,12 @@ const CoverDesigner: React.FC = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-cover-image', {
-        body: { description: prompt.trim(), title: title.trim(), bookType },
+        body: {
+          description: prompt.trim(),
+          title: stripTashkeel(title),
+          author: stripTashkeel(author),
+          bookType,
+        },
       });
       if (error) { toast.error(error.message || 'فشل التوليد'); return; }
       if (data?.error) { toast.error(data.error); return; }
@@ -48,7 +58,7 @@ const CoverDesigner: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [title, bookType, prompt]);
+  }, [title, author, bookType, prompt]);
 
   const handleDownload = useCallback(() => {
     if (!imageUrl) return;
