@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, BookOpen, ArrowRight, ArrowLeft, Eye } from 'lucide-react';
 import ChapterInteractions from '@/components/reading/ChapterInteractions';
+import { ChapterContent } from '@/lib/chapterContent';
 
 interface Story {
   id: string;
