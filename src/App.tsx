@@ -58,6 +58,11 @@ const ProfileCustomization = lazy(() => import('./pages/ProfileCustomization'));
 const Rewards = lazy(() => import('./pages/Rewards'));
 const Shop = lazy(() => import('./pages/Shop'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+const WriteDashboard = lazy(() => import('./pages/WriteDashboard'));
+const StoryEditorPage = lazy(() => import('./pages/StoryEditorPage'));
+const ChapterEditorPage = lazy(() => import('./pages/ChapterEditorPage'));
+const StoryPublicPage = lazy(() => import('./pages/StoryReaderPages').then(m => ({ default: m.StoryPublicPage })));
+const ChapterReaderPage = lazy(() => import('./pages/StoryReaderPages').then(m => ({ default: m.ChapterReaderPage })));
 import DailyLoginModal from './components/gamification/DailyLoginModal';
 import MysteryDropHunter from './components/gamification/MysteryDropHunter';
 
