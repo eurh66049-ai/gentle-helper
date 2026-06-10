@@ -963,7 +963,7 @@ const CoverDesigner: React.FC = () => {
             disabled={aiLoading}
           />
           <p className="text-[11px] text-muted-foreground">
-            نصيحة: اذكر الأجواء، الألوان، العناصر الرئيسية، والأسلوب الفني. لن تُضاف نصوص على الصورة (يمكنك إضافة العنوان لاحقاً).
+            نصيحة: اذكر الأجواء، الألوان، العناصر، والأسلوب الفني. سيتم كتابة <strong>عنوان الكتاب</strong> و<strong>تصنيفه</strong> على الصورة المُولَّدة تلقائياً (تأكد من إدخالهما في قسم المحتوى أولاً).
           </p>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setAiOpen(false)} disabled={aiLoading}>
