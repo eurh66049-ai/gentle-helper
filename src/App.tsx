@@ -161,6 +161,11 @@ function AppContent() {
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/write" element={<WriteDashboard />} />
+            <Route path="/write/:storyId" element={<StoryEditorPage />} />
+            <Route path="/write/:storyId/chapter/:chapterId" element={<ChapterEditorPage />} />
+            <Route path="/story/:storyId" element={<StoryPublicPage />} />
+            <Route path="/story/:storyId/chapter/:chapterNumber" element={<ChapterReaderPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
