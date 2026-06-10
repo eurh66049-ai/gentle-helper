@@ -238,7 +238,7 @@ export default function SearchResults() {
               </div>
             )}
           </div>
-        ) : query ? (
+        ) : query && storyResults.length === 0 ? (
           <div className="text-center py-16">
             <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">
