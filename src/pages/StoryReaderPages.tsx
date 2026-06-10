@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, BookOpen, ArrowRight, ArrowLeft, Eye } from 'lucide-react';
 import ChapterInteractions from '@/components/reading/ChapterInteractions';
+import { ChapterContent } from '@/lib/chapterContent';
 
 interface Story {
   id: string;
@@ -140,9 +141,10 @@ export const ChapterReaderPage: React.FC = () => {
         <h1 className="text-xl font-black mb-1">{chapter.title}</h1>
         <div className="text-xs text-muted-foreground mb-4">الفصل #{chapter.chapter_number} • {chapter.word_count} كلمة</div>
 
-        <article className="prose prose-lg max-w-none text-base leading-loose whitespace-pre-wrap font-[Tajawal,sans-serif]" dir="rtl">
-          {chapter.content}
+        <article className="prose prose-lg max-w-none text-base font-[Tajawal,sans-serif]" dir="rtl">
+          <ChapterContent content={chapter.content} />
         </article>
+
 
         <ChapterInteractions chapterId={chapter.id} />
 
