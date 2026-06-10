@@ -7,6 +7,7 @@ import { SEOHead } from '@/components/seo/SEOHead';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, BookOpen, ArrowRight, ArrowLeft, Eye } from 'lucide-react';
+import ChapterInteractions from '@/components/reading/ChapterInteractions';
 
 interface Story {
   id: string;
@@ -142,6 +143,9 @@ export const ChapterReaderPage: React.FC = () => {
         <article className="prose prose-lg max-w-none text-base leading-loose whitespace-pre-wrap font-[Tajawal,sans-serif]" dir="rtl">
           {chapter.content}
         </article>
+
+        <ChapterInteractions chapterId={chapter.id} />
+
 
         <div className="flex gap-2 mt-6">
           <Button variant="outline" disabled={!neighbors.prev} onClick={() => neighbors.prev && navigate(`/story/${storyId}/chapter/${neighbors.prev}`)} className="flex-1">
