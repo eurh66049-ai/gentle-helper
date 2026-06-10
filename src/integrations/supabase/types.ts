@@ -3707,6 +3707,56 @@ export type Database = {
         }
         Relationships: []
       }
+      story_chapters: {
+        Row: {
+          chapter_number: number
+          content: string
+          created_at: string
+          id: string
+          is_published: boolean
+          published_at: string | null
+          story_id: string
+          title: string
+          updated_at: string
+          views_count: number
+          word_count: number
+        }
+        Insert: {
+          chapter_number?: number
+          content?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          published_at?: string | null
+          story_id: string
+          title?: string
+          updated_at?: string
+          views_count?: number
+          word_count?: number
+        }
+        Update: {
+          chapter_number?: number
+          content?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          published_at?: string | null
+          story_id?: string
+          title?: string
+          updated_at?: string
+          views_count?: number
+          word_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_chapters_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "user_stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       story_highlight_items: {
         Row: {
           book_id: string | null
@@ -4535,6 +4585,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_stories: {
+        Row: {
+          author_id: string
+          category: string | null
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          language: string | null
+          likes_count: number
+          status: string
+          title: string
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          author_id: string
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          language?: string | null
+          likes_count?: number
+          status?: string
+          title: string
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          author_id?: string
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          language?: string | null
+          likes_count?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: []
       }
       verification_purchases: {
         Row: {
