@@ -304,6 +304,9 @@ const CoverDesigner: React.FC = () => {
     } finally {
       setAiLoading(false);
     }
+  }, [aiPrompt, state.title, state.bookType, update]);
+
+
 
   const handleDownload = useCallback(async () => {
     if (!coverRef.current) return;
