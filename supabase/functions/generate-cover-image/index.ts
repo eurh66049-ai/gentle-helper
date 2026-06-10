@@ -5,15 +5,34 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const MISTRAL_API = "https://api.mistral.ai/v1";
+
+async function fetchFileAsBase64(fileId: string, apiKey: string): Promise<string | null> {
+  const r = await fetch(`${MISTRAL_API}/files/${fileId}/content`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!r.ok) {
+    console.error("file fetch failed", r.status, await r.text());
+    return null;
+  }
+  const buf = new Uint8Array(await r.arrayBuffer());
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < buf.length; i += chunk) {
+    binary += String.fromCharCode(...buf.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    const apiKey = Deno.env.get("MISTRAL_API_KEY");
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY غير متوفر" }), {
+      return new Response(JSON.stringify({ error: "MISTRAL_API_KEY غير متوفر" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -27,61 +46,84 @@ serve(async (req) => {
       });
     }
 
-    const prompt = `صمّم غلاف كتاب احترافي عالي الجودة بنسبة 2:3 (عمودي) مناسب للطباعة.
-وصف الغلاف الفني: ${description}.
-يجب أن يظهر على الغلاف النصوص العربية التالية بخط واضح وجميل ومقروء تماماً:
-${title ? `- عنوان الكتاب بخط كبير وبارز في المنتصف أو الأعلى: «${title}».` : ""}
-${author ? `- اسم المؤلف بخط متوسط أسفل العنوان أو في أسفل الغلاف: «${author}».` : ""}
-${bookType ? `- تصنيف الكتاب بخط أصغر في الأعلى أو الأسفل: «${bookType}».` : ""}
+    const prompt = `Design a professional, high-quality vertical book cover (2:3 portrait ratio), print-ready.
+Artistic description: ${description}.
+The cover MUST display the following Arabic texts clearly, legibly, and beautifully rendered:
+${title ? `- Book title in large bold font, prominently placed (center or top): «${title}».` : ""}
+${author ? `- Author name in medium font below the title or at the bottom: «${author}».` : ""}
+${bookType ? `- Book category in smaller font at the top or bottom: «${bookType}».` : ""}
 
-تعليمات صارمة جداً بخصوص الكتابة العربية:
-- اكتب جميع النصوص العربية بدون أي تشكيل إطلاقاً (لا فتحة، لا ضمة، لا كسرة، لا سكون، لا شدة، لا تنوين). النصوص يجب أن تكون حروفاً عربية مجردة فقط.
-- لا تضف أي علامات حركات أو نقاط تشكيل فوق أو تحت الحروف.
-- اكتب الكلمات تماماً كما هي مكتوبة هنا حرفاً بحرف بدون إضافات.
-- تأكد من أن الحروف العربية متصلة بشكل صحيح وغير مشوهة.
+STRICT rules for Arabic text rendering:
+- Write all Arabic text WITHOUT ANY diacritics/tashkeel (no fatha, damma, kasra, sukun, shadda, tanwin). Plain Arabic letters only.
+- Do not add any vowel marks above or below letters.
+- Write the words exactly letter-by-letter as provided, no additions.
+- Arabic letters must be properly connected and not distorted.
 
-تعليمات إضافية: تصميم فني متقن، إضاءة احترافية، تكوين متوازن، ألوان منسجمة مع موضوع الكتاب.`;
+Additional: polished artistic design, professional lighting, balanced composition, colors harmonious with the book's theme.`;
 
-
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+    const resp = await fetch(`${MISTRAL_API}/chat/completions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
+        model: "mistral-medium-latest",
         messages: [{ role: "user", content: prompt }],
-        modalities: ["image", "text"],
+        tools: [{ type: "image_generation" }],
       }),
     });
 
     if (!resp.ok) {
       const text = await resp.text();
-      console.error("AI gateway error:", resp.status, text);
+      console.error("Mistral error:", resp.status, text);
       if (resp.status === 429) {
         return new Response(JSON.stringify({ error: "تم تجاوز الحد، حاول لاحقاً" }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (resp.status === 402) {
-        return new Response(JSON.stringify({ error: "الرصيد غير كافٍ لتوليد الصورة" }), {
-          status: 402,
+      if (resp.status === 401) {
+        return new Response(JSON.stringify({ error: "مفتاح Mistral غير صالح" }), {
+          status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ error: "فشل توليد الصورة" }), {
+      return new Response(JSON.stringify({ error: "فشل توليد الصورة", details: text }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const data = await resp.json();
-    const b64 = data?.data?.[0]?.b64_json;
+    console.log("Mistral response:", JSON.stringify(data).slice(0, 1500));
+
+    // Extract image: Mistral returns content as array of chunks; image chunks have type "tool_file" with file_id
+    const content = data?.choices?.[0]?.message?.content;
+    let b64: string | null = null;
+
+    const chunks = Array.isArray(content) ? content : [];
+    for (const chunk of chunks) {
+      if (chunk?.type === "tool_file" && chunk?.file_id) {
+        b64 = await fetchFileAsBase64(chunk.file_id, apiKey);
+        if (b64) break;
+      }
+      if (chunk?.type === "image_url" && typeof chunk?.image_url === "string") {
+        // Fallback: fetch URL
+        const r = await fetch(chunk.image_url);
+        if (r.ok) {
+          const buf = new Uint8Array(await r.arrayBuffer());
+          let binary = "";
+          for (let i = 0; i < buf.length; i += 0x8000) binary += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+          b64 = btoa(binary);
+          break;
+        }
+      }
+    }
+
     if (!b64) {
-      console.error("No image in response", JSON.stringify(data).slice(0, 500));
-      return new Response(JSON.stringify({ error: "لم يتم إنشاء صورة" }), {
+      console.error("No image found in Mistral response");
+      return new Response(JSON.stringify({ error: "لم يتم إنشاء صورة", raw: JSON.stringify(data).slice(0, 800) }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
