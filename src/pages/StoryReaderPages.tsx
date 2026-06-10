@@ -141,9 +141,10 @@ export const ChapterReaderPage: React.FC = () => {
         <h1 className="text-xl font-black mb-1">{chapter.title}</h1>
         <div className="text-xs text-muted-foreground mb-4">الفصل #{chapter.chapter_number} • {chapter.word_count} كلمة</div>
 
-        <article className="prose prose-lg max-w-none text-base leading-loose whitespace-pre-wrap font-[Tajawal,sans-serif]" dir="rtl">
-          {chapter.content}
+        <article className="prose prose-lg max-w-none text-base font-[Tajawal,sans-serif]" dir="rtl">
+          <ChapterContent content={chapter.content} />
         </article>
+
 
         <ChapterInteractions chapterId={chapter.id} />
 
