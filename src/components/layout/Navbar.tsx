@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import siteIcon from '@/assets/site-icon.svg';
-import { Bell, Heart, Menu, Settings, MessageSquare, Search, Mail, BookOpen } from 'lucide-react';
+import { Bell, Heart, Menu, Settings, MessageSquare, Search, Mail, BookOpen, PenSquare } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { SearchDialog } from '@/components/search/SearchDialog';
