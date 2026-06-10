@@ -943,6 +943,42 @@ const CoverDesigner: React.FC = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={aiOpen} onOpenChange={(o) => { if (!aiLoading) setAiOpen(o); }}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-primary" />
+              تخيّل غلاف كتابك بالذكاء الاصطناعي
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              اكتب وصفاً تفصيلياً للغلاف الذي تريده وسيقوم الذكاء الاصطناعي بإنشائه. مثال: "مدينة قديمة تحت ضوء القمر بألوان دافئة وأسلوب فني سينمائي".
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="صف الغلاف الذي تتخيله بالتفصيل…"
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            rows={5}
+            disabled={aiLoading}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            نصيحة: اذكر الأجواء، الألوان، العناصر الرئيسية، والأسلوب الفني. لن تُضاف نصوص على الصورة (يمكنك إضافة العنوان لاحقاً).
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setAiOpen(false)} disabled={aiLoading}>
+              إلغاء
+            </Button>
+            <Button onClick={handleGenerateAICover} disabled={aiLoading || aiPrompt.trim().length < 3}>
+              {aiLoading ? (
+                <><Loader2 className="h-4 w-4 ml-2 animate-spin" /> جارٍ الإنشاء…</>
+              ) : (
+                <><Sparkles className="h-4 w-4 ml-2" /> أنشئ الغلاف</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
