@@ -109,6 +109,19 @@ const CoverDesigner: React.FC = () => {
               </div>
 
               <div>
+                <Label className="mb-2 block font-semibold">اسم المؤلف</Label>
+                <Input
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  placeholder="مثال: أحمد محمد"
+                  className="text-right"
+                  dir="rtl"
+                />
+              </div>
+
+
+
+              <div>
                 <Label className="mb-2 block font-semibold">تصنيف الكتاب</Label>
                 <Select value={bookType} onValueChange={setBookType}>
                   <SelectTrigger dir="rtl"><SelectValue /></SelectTrigger>
