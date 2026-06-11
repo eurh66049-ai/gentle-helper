@@ -14,6 +14,132 @@ import Footer from '@/components/layout/Footer';
 
 const BOOK_TYPES = ['رواية', 'قصة', 'دراسة', 'سيرة ذاتية', 'شعر', 'تاريخ', 'فلسفة', 'دين', 'علوم', 'تنمية بشرية', 'أطفال', 'فن', 'سياسة', 'اقتصاد', 'تكنولوجيا', 'عام'];
 
+const loadCoverImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const img = new Image();
+  img.onload = () => resolve(img);
+  img.onerror = reject;
+  img.src = src;
+});
+
+const fitLines = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number, maxLines: number) => {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = '';
+
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width <= maxWidth || !current) {
+      current = test;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines.slice(0, maxLines);
+};
+
+const drawCenteredArabicText = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  maxLines: number,
+  startSize: number,
+  minSize: number,
+  weight: number,
+) => {
+  if (!text.trim()) return y;
+
+  let size = startSize;
+  let lines: string[] = [];
+  do {
+    ctx.font = `${weight} ${size}px Arial, Tahoma, sans-serif`;
+    lines = fitLines(ctx, text, maxWidth, maxLines);
+    const widest = Math.max(...lines.map((line) => ctx.measureText(line).width));
+    if (widest <= maxWidth && lines.length <= maxLines) break;
+    size -= 4;
+  } while (size >= minSize);
+
+  const lineHeight = size * 1.28;
+  const top = y - ((lines.length - 1) * lineHeight) / 2;
+  ctx.textAlign = 'center';
+  ctx.direction = 'rtl';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.72)';
+  ctx.lineWidth = Math.max(3, size * 0.08);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.72)';
+  ctx.shadowBlur = size * 0.16;
+  ctx.shadowOffsetY = size * 0.05;
+
+  lines.forEach((line, index) => {
+    const lineY = top + index * lineHeight;
+    ctx.strokeText(line, x, lineY, maxWidth);
+    ctx.fillText(line, x, lineY, maxWidth);
+  });
+  ctx.shadowColor = 'transparent';
+
+  return top + lines.length * lineHeight;
+};
+
+const composeArabicCover = async (baseImageUrl: string, title: string, author: string, bookType: string) => {
+  const img = await loadCoverImage(baseImageUrl);
+  const canvas = document.createElement('canvas');
+  const width = img.naturalWidth || 1024;
+  const height = img.naturalHeight || 1536;
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return baseImageUrl;
+
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const shade = ctx.createLinearGradient(0, 0, 0, height);
+  shade.addColorStop(0, 'rgba(0, 0, 0, 0.50)');
+  shade.addColorStop(0.28, 'rgba(0, 0, 0, 0.12)');
+  shade.addColorStop(0.58, 'rgba(0, 0, 0, 0.08)');
+  shade.addColorStop(1, 'rgba(0, 0, 0, 0.58)');
+  ctx.fillStyle = shade;
+  ctx.fillRect(0, 0, width, height);
+
+  const cleanTitle = title.trim();
+  const cleanAuthor = author.trim();
+  const cleanType = bookType.trim();
+  const maxTextWidth = width * 0.82;
+
+  if (cleanType) {
+    const categorySize = Math.max(30, width * 0.044);
+    ctx.font = `700 ${categorySize}px Arial, Tahoma, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.direction = 'rtl';
+    ctx.textBaseline = 'middle';
+    const pillWidth = Math.min(width * 0.56, Math.max(width * 0.22, ctx.measureText(cleanType).width + width * 0.11));
+    const pillHeight = categorySize * 1.8;
+    const pillX = (width - pillWidth) / 2;
+    const pillY = height * 0.07;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.44)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.lineWidth = Math.max(2, width * 0.003);
+    ctx.beginPath();
+    ctx.roundRect(pillX, pillY, pillWidth, pillHeight, pillHeight / 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(cleanType, width / 2, pillY + pillHeight / 2, pillWidth * 0.86);
+  }
+
+  drawCenteredArabicText(ctx, cleanTitle, width / 2, height * 0.31, maxTextWidth, 3, width * 0.108, width * 0.056, 900);
+
+  if (cleanAuthor) {
+    drawCenteredArabicText(ctx, cleanAuthor, width / 2, height * 0.88, maxTextWidth, 2, width * 0.054, width * 0.036, 700);
+  }
+
+  return canvas.toDataURL('image/png');
+};
+
 const CoverDesigner: React.FC = () => {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
@@ -48,7 +174,13 @@ const CoverDesigner: React.FC = () => {
       if (error) { toast.error(error.message || 'فشل التوليد'); return; }
       if (data?.error) { toast.error(data.error); return; }
       if (data?.imageUrl) {
-        setImageUrl(data.imageUrl);
+        const finalCover = await composeArabicCover(
+          data.imageUrl,
+          stripTashkeel(title),
+          stripTashkeel(author),
+          stripTashkeel(bookType),
+        );
+        setImageUrl(finalCover);
         toast.success('تم إنشاء الغلاف!');
       } else {
         toast.error('لم يتم إنشاء صورة');

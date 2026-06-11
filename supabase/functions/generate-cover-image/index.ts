@@ -46,18 +46,12 @@ serve(async (req) => {
       });
     }
 
-    const prompt = `Design a professional, high-quality vertical book cover (2:3 portrait ratio), print-ready.
+    const prompt = `Design a professional, high-quality vertical book cover background (2:3 portrait ratio), print-ready.
 Artistic description: ${description}.
-The cover MUST display the following Arabic texts clearly, legibly, and beautifully rendered:
-${title ? `- Book title in large bold font, prominently placed (center or top): «${title}».` : ""}
-${author ? `- Author name in medium font below the title or at the bottom: «${author}».` : ""}
-${bookType ? `- Book category in smaller font at the top or bottom: «${bookType}».` : ""}
+Book theme/category for visual mood only: ${bookType || "general"}.
 
-STRICT rules for Arabic text rendering:
-- Write all Arabic text WITHOUT ANY diacritics/tashkeel (no fatha, damma, kasra, sukun, shadda, tanwin). Plain Arabic letters only.
-- Do not add any vowel marks above or below letters.
-- Write the words exactly letter-by-letter as provided, no additions.
-- Arabic letters must be properly connected and not distorted.
+CRITICAL: Do NOT write any text, letters, words, typography, symbols, fake Arabic, logo, watermark, signature, label, title, author name, or category on the image.
+Leave clean visual space in the upper/central area and lower area so the app can add real Arabic text later.
 
 Additional: polished artistic design, professional lighting, balanced composition, colors harmonious with the book's theme.`;
 
